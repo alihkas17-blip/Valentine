@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>7 Days of Valentine ❤️</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  margin: 0;
+  font-family: 'Georgia', serif;
+  background: #fff0f3;
+}
+
+/* HOME */
+#home {
+  text-align: center;
+  padding: 30px;
+}
+
+.day-btn {
+  display: block;
+  margin: 15px auto;
+  padding: 15px;
+  width: 80%;
+  font-size: 1.1em;
+  border: none;
+  border-radius: 25px;
+  background: #ff758f;
+  color: white;
+}
+
+/* PASSWORD SCREEN */
+#passwordScreen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(#fff0f3, #ffd6e0);
+  text-align: center;
+  padding-top: 120px;
+  overflow: hidden;
+}
+
+#passwordScreen input {
+  padding: 12px;
+  width: 70%;
+  font-size: 1em;
+  border-radius: 20px;
+  border: 1px solid #ff8fab;
+  text-align: center;
+}
+
+#hint {
+  opacity: 0.6;
+  margin-top: 10px;
+}
+
+/* FLOATING HEARTS */
+.heart {
+  position: absolute;
+  font-size: 14px;
+  color: #ff758f;
+  animation: floatUp 1.2s ease forwards;
+}
+
+@keyframes floatUp {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-30px); }
+}
+
+/* DAY SCREEN */
+.screen {
+  position: fixed;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+.screen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.15); /* subtle darkening */
+}
+
+
+.overlay {
+  background: rgba(255,240,245,0.65);
+  min-height: 100%;
+  padding: 20px;
+  overflow-y: auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* ENVELOPE */
+.envelope {
+  position: relative;
+  width: 240px;
+  height: 160px;
+  margin: 30px auto;
+  background: #ffb3c1;
+  border-radius: 0 0 15px 15px;
+  cursor: pointer;
+}
+
+.envelope:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-left: 120px solid transparent;
+  border-right: 120px solid transparent;
+  border-bottom: 80px solid #ff8fab;
+  transform-origin: top;
+  transition: transform 0.8s ease;
+}
+
+.envelope.open:before {
+  transform: rotateX(180deg);
+}
+
+/* LETTER – FIXED (OPENS DOWNWARD) */
+.letter {
+  position: absolute;
+  top: 20px;
+  left: 10px;
+  width: 220px;
+  max-height: 0;
+  background: #fffafc;
+  border-radius: 12px;
+  padding: 0 18px;
+  overflow-y: auto;
+  line-height: 1.6;
+  transition: max-height 1s ease, padding 0.5s ease;
+}
+
+.envelope.open .letter {
+  max-height: 60vh;   /* 🔥 KEY FIX */
+  padding: 18px;
+}
+
+/* BUTTON */
+button {
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: none;
+  background: #ff758f;
+  color: white;
+  font-size: 1em;
+}
+.close-btn-container {
+  position: fixed !important;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  pointer-events: auto;
+}
+
+.close-btn-container button {
+  padding: 12px 30px;
+  border-radius: 30px;
+  background: #ff4d6d;
+  font-size: 1em;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.envelope {
+  margin-bottom: 90px;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- HOME -->
+<div id="home">
+  <h2>7 Days of Valentine 💖</h2>
+  <button class="day-btn" onclick="askPassword(1)">🌹 Rose Day</button>
+  <button class="day-btn" onclick="askPassword(2)">💍 Propose Day</button>
+  <button class="day-btn" onclick="askPassword(3)">🍫 Chocolate Day</button>
+  <button class="day-btn" onclick="askPassword(4)">🧸 Teddy Day</button>
+  <button class="day-btn" onclick="askPassword(5)">🤝 Promise Day</button>
+  <button class="day-btn" onclick="askPassword(6)">💋 Kiss Day</button>
+  <button class="day-btn" onclick="askPassword(7)">❤️ Valentine’s Day</button>
+</div>
+
+<!-- PASSWORD -->
+<div id="passwordScreen">
+  <h3>Enter today’s password 💌</h3>
+  <input id="pwdInput" type="password">
+  <p id="hint"></p>
+  <button onclick="checkPassword()">Unlock</button>
+  <p id="error" style="color:#c9184a"></p>
+</div>
+
+<script>
+let currentDay = 0;
+let bgm = new Audio();
+let paper = new Audio("paper.mp3");
+
+const passwords = {
+1:"rose",2:"yes",3:"sweet",4:"hug",5:"promise",6:"kiss",7:"forever"
+};
+
+const hints = {
+1:"Hint: flowers were involved 🌹",
+2:"Hint: you already said this once 😉",
+3:"Hint: you love this 🍫",
+4:"Hint: warm & comforting 🧸",
+5:"Hint: something we mean seriously 🤍",
+6:"Hint: closer than words 💋",
+7:"Hint: no expiry date ❤️"
+};
+
+const images = {
+1:"rose.jpg",
+2:"propose.jpg",
+3:"chocolate.jpg",
+4:"teddy.jpg",
+5:"promise.jpg",
+6:"kiss.jpg",
+7:"valentine.jpg"
+};
+
+const letters = {
+1:`My love,
+
+Somewhere between random conversations,
+comfortable silences,
+and me realizing —
+“Oh no… I like this man.”
+
+Still do.
+Very much. 🌹`,
+
+2:`I don’t remember the moment,
+but I remember the certainty.
+
+There is no future I imagine
+without you in it.
+
+Still choosing you. 💍`,
+
+3:`You are my favorite kind of sweet.
+Not loud.
+Not overwhelming.
+Just enough.
+
+Also… you owe me chocolates 😏🍫`,
+
+4:`You are comfort.
+Home.
+The hug I miss most after long days.
+
+My favorite place 🧸`,
+
+5:`I promise patience.
+Effort.
+Understanding.
+Choosing us even on hard days.
+
+And yes…
+annoying you forever 🤍`,
+
+6:`Distance is unfair,
+because if I were there,
+you wouldn’t be reading this.
+
+You’d be distracted 😌💋`,
+
+7:`Not perfect.
+Not dramatic.
+Just real.
+
+Us.
+Growing.
+Choosing each other every day.
+
+Happy Valentine’s Day,
+mine ❤️`
+};
+
+
+const spotifyLinks = {
+  1: "https://open.spotify.com/track/1gvXJHJedf2oQ6D2DFO4ip?si=vH6vKCRaR7OI-IvT7Cpx6g",
+  2: "https://open.spotify.com/track/1gvXJHJedf2oQ6D2DFO4ip?si=vH6vKCRaR7OI-IvT7Cpx6g",
+  3: "https://open.spotify.com/track/1gvXJHJedf2oQ6D2DFO4ip?si=vH6vKCRaR7OI-IvT7Cpx6g",
+  4: "https://open.spotify.com/track/1gvXJHJedf2oQ6D2DFO4ip?si=vH6vKCRaR7OI-IvT7Cpx6g",
+  5: "https://open.spotify.com/track/1gvXJHJedf2oQ6D2DFO4ip?si=vH6vKCRaR7OI-IvT7Cpx6g",
+  6: "https://open.spotify.com/track/1gvXJHJedf2oQ6D2DFO4ip?si=vH6vKCRaR7OI-IvT7Cpx6g",
+  7: "https://open.spotify.com/track/1gvXJHJedf2oQ6D2DFO4ip?si=vH6vKCRaR7OI-IvT7Cpx6g"
+};
+
+function openSpotify(day){
+  window.open(spotifyLinks[day], "_blank");
+}
+
+function askPassword(day){
+  currentDay = day;
+  home.style.display = "none";
+  passwordScreen.style.display = "block";
+  pwdInput.value = "";
+  error.innerText = "";
+  hint.innerText = hints[day];
+}
+
+pwdInput.addEventListener("input", () => {
+  let heart = document.createElement("div");
+  heart.className = "heart";
+  heart.innerText = "❤️";
+  heart.style.left = (pwdInput.offsetLeft + Math.random()*pwdInput.offsetWidth) + "px";
+  heart.style.top = pwdInput.offsetTop + "px";
+  passwordScreen.appendChild(heart);
+  setTimeout(()=>heart.remove(),1200);
+});
+
+function checkPassword(){
+  if(pwdInput.value !== passwords[currentDay]){
+    error.innerText = "Wrong password 😌 try again";
+    return;
+  }
+  passwordScreen.style.display = "none";
+  openDay(currentDay);
+}
+
+function openDay(day){
+  let screen = document.createElement("div");
+  screen.className = "screen";
+  screen.style.backgroundImage = `url(${images[day]})`;
+
+ screen.innerHTML = `
+  <div class="overlay">
+    <div class="envelope" onclick="openLetter(this, ${day})">
+      <div class="letter">
+        <div id="text${day}"></div>
+        <div style="font-size:0.75em;opacity:0.25">(scroll slowly 💌)</div>
+      </div>
+    </div>
+      <div style="text-align:center; margin-top:20px;">
+      <button onclick="openSpotify(${day})">🎵 Play Our Song</button>
+    </div>
+  </div>
+
+  <div class="close-btn-container">
+    <button onclick="goHome()">Close 💟</button>
+  </div>
+`;
+
+  
+  document.body.appendChild(screen);
+  screen.style.display = "block";
+
+  bgm.pause();
+  bgm = new Audio(`music${day}.mp3`);
+  bgm.loop = true;
+  bgm.play();
+}
+
+function openLetter(el, day){
+  if(el.classList.contains("open")) return;
+  el.classList.add("open");
+  paper.play();
+  typeWriter(letters[day], document.getElementById("text"+day));
+}
+
+function typeWriter(text, el){
+  el.innerHTML="";
+  let i=0;
+  let t=setInterval(()=>{
+    el.innerHTML += text.charAt(i++);
+    if(i>=text.length) clearInterval(t);
+  },40);
+}
+
+function goHome(){
+  bgm.pause();
+  document.querySelectorAll(".screen").forEach(s=>s.remove());
+  home.style.display="block";
+}
+</script>
+
+</body>
+</html>
